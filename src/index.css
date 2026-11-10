@@ -1,0 +1,104 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    font-family: 'Inter', system-ui, sans-serif;
+  }
+}
+
+/* ─────────────────────────────────────────────────────────────
+   TEXTURAS DE TEAR E EFEITOS PIXELIZADOS DE TECELAGEM
+   ───────────────────────────────────────────────────────────── */
+
+/* Tear Tafetá: Menor definição, trama mais aberta com pontos pixelados visíveis */
+.tear-weave-tafeta {
+  background-image: 
+    linear-gradient(rgba(0, 0, 0, 0.09) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.09) 1px, transparent 1px);
+  background-size: 3.5px 3.5px;
+}
+.tear-text-tafeta {
+  image-rendering: pixelated;
+  letter-spacing: 0.08em;
+  text-shadow: 
+    0.8px 0px 0 rgba(0, 0, 0, 0.25),
+    -0.8px 0px 0 rgba(0, 0, 0, 0.25),
+    0px 0.8px 0 rgba(0, 0, 0, 0.25);
+  filter: contrast(110%);
+}
+
+/* Tear Tafetá Gold: Definição intermediária suave */
+.tear-weave-tafeta-gold {
+  background-image: 
+    linear-gradient(rgba(0, 0, 0, 0.06) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.06) 1px, transparent 1px);
+  background-size: 2.6px 2.6px;
+}
+.tear-text-tafeta-gold {
+  letter-spacing: 0.05em;
+  text-shadow: 
+    0.5px 0.5px 0 rgba(0, 0, 0, 0.2),
+    -0.5px -0.5px 0 rgba(255, 255, 255, 0.15);
+}
+
+/* Tear Alta Definição: Alta densidade, fios finos bem definidos */
+.tear-weave-alta-definicao {
+  background-image: 
+    linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+  background-size: 1.8px 1.8px;
+}
+.tear-text-alta-definicao {
+  letter-spacing: 0.02em;
+  text-shadow: 0.3px 0.3px 0.5px rgba(0, 0, 0, 0.35);
+}
+
+/* Tear Super Batido: Maior definição possível, trama ultra compacta */
+.tear-weave-super-batido {
+  background-image: 
+    linear-gradient(rgba(0, 0, 0, 0.04) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0, 0, 0, 0.04) 1px, transparent 1px);
+  background-size: 1.2px 1.2px;
+}
+.tear-text-super-batido {
+  letter-spacing: 0.01em;
+  text-shadow: 0.2px 0.2px 0.3px rgba(0, 0, 0, 0.3);
+}
+
+/* Efeito de trama de fios no fundo */
+.woven-scanlines {
+  background-image: repeating-linear-gradient(
+    0deg,
+    rgba(0, 0, 0, 0.035),
+    rgba(0, 0, 0, 0.035) 1px,
+    transparent 1px,
+    transparent 2px
+  );
+}
+
+/* Sombra e acabamento de etiqueta física */
+.label-elevation {
+  box-shadow: 
+    0 10px 25px -5px rgba(0, 0, 0, 0.3),
+    0 8px 10px -6px rgba(0, 0, 0, 0.2),
+    inset 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
+::-webkit-scrollbar-track {
+  background: #f1f5f9;
+}
+::-webkit-scrollbar-thumb {
+  background: #cbd5e1;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #94a3b8;
+}

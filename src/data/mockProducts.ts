@@ -13,9 +13,8 @@ export const PRODUCTS: Product[] = [
       'Tecelagem clássica com pontos visíveis de tear',
       'Custo por unidade reduzido para grandes tiragens',
       'Resistência comprovada a lavagens industriais',
-      'Compatível com corte reto, dobra meio e rolo'
+      'Compatível com corte reto, dobra meio, pontas e rolo'
     ],
-    image: 'https://images.unsplash.com/photo-1584308666744-24d5c474f2ae?auto=format&fit=crop&w=800&q=80',
     popular: false,
     defaultFabric: 'tafeta',
     defaultCut: 'dobra_meio',
@@ -34,7 +33,6 @@ export const PRODUCTS: Product[] = [
       'Excelente definição de tipografia e detalhes',
       'Resistente a vincos e lavagens frequentes'
     ],
-    image: 'https://images.unsplash.com/photo-1503342217505-b0a15ec3261c?auto=format&fit=crop&w=800&q=80',
     popular: true,
     defaultFabric: 'tafeta_gold',
     defaultCut: 'dobra_meio',
@@ -54,7 +52,6 @@ export const PRODUCTS: Product[] = [
       'Transição perfeita e contínua no mesmo tecido',
       'Melhor relação custo-benefício para etiquetas de gola completas'
     ],
-    image: 'https://images.unsplash.com/photo-1598032895397-b9472444bf93?auto=format&fit=crop&w=800&q=80',
     popular: true,
     defaultFabric: 'dupla_densidade',
     defaultCut: 'dobra_meio',
@@ -74,7 +71,6 @@ export const PRODUCTS: Product[] = [
       'Ultra resistente a estonagem, stone wash e lavanderia pesada',
       'Corte a laser ou só cortada com bordas firmes'
     ],
-    image: 'https://images.unsplash.com/photo-1542272604-780c96856592?auto=format&fit=crop&w=800&q=80',
     popular: false,
     defaultFabric: 'super_batido',
     defaultCut: 'so_cortada',
@@ -87,14 +83,13 @@ export const PRODUCTS: Product[] = [
     category: 'alta_definicao',
     categoryLabel: 'Alta Definição',
     tagline: 'Fios ultrafinos com resolução máxima de logotipo e textos',
-    description: 'O padrão internacional de alta costura e alfaiataria. Produzida em teares suíços de última geração com fios 50 denier de alta densidade. Reproduz letras minúsculas, monogramas complexos e traços delicados com precisão cirúrgica.',
+    description: 'O padrão internacional de alta costura e alfaiataria. Produzida em teares de última geração com fios 50 denier de alta densidade. Reproduz letras minúsculas, monogramas complexos e traços delicados com precisão cirúrgica.',
     features: [
       'Fios ultrafinos 50 denier de máxima resolução',
-      'Toque aveludado acetinado com toque zero',
+      'Toque aveludado acetinado que não pinica',
       'Fidelidade extrema de monogramas e ilustrações',
       'Cores vibrantes que não desbotam com o tempo'
     ],
-    image: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=800&q=80',
     popular: true,
     defaultFabric: 'alta_definicao',
     defaultCut: 'dobra_meio',
@@ -107,14 +102,13 @@ export const PRODUCTS: Product[] = [
     category: 'termocolante',
     categoryLabel: 'Termocolante',
     tagline: 'Fixação térmica definitiva com ferro ou prensa',
-    description: 'Etiqueta tecida de alta definição que recebe película de resina termoplástica de adesão definitiva no verso. Fixa em algodão, malhas e sintéticos em 15 segundos a 160°C, dispensando máquinas de costura.',
+    description: 'Etiqueta tecida que recebe película de resina termoplástica de adesão definitiva no verso. Fixa em algodão, malhas e sintéticos em 15 segundos a 160°C, dispensando máquinas de costura.',
     features: [
       'Aplicação instantânea com ferro comum ou prensa térmica',
       'Fixação permanente resistente a lavagens em máquina',
       'Acabamento a laser com bordas macias e seladas',
       'Disponível em qualquer uma das nossas 5 tecelagens'
     ],
-    image: 'https://images.unsplash.com/photo-1583743814966-8936f5b7be1a?auto=format&fit=crop&w=800&q=80',
     popular: false,
     defaultFabric: 'tafeta_gold',
     defaultCut: 'laser',
@@ -129,7 +123,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
     segment: 'Streetwear',
     fabric: 'Tafetá Gold',
     cut: 'Dobra Meio',
-    image: 'https://images.unsplash.com/photo-1598032895397-b9472444bf93?auto=format&fit=crop&w=800&q=80',
+    description: 'Etiqueta medindo 25x70mm em Tafetá Gold, toque aveludado na gola e dobra central perfeita com margem de 7mm.',
     accentColor: '#DC2626'
   },
   {
@@ -138,16 +132,16 @@ export const GALLERY_ITEMS: GalleryItem[] = [
     segment: 'Alta Costura',
     fabric: 'Alta Definição',
     cut: 'Manhattan',
-    image: 'https://images.unsplash.com/photo-1594938298603-c8148c4dae35?auto=format&fit=crop&w=800&q=80',
+    description: 'Etiqueta em fios ultrafinos 50 denier, com dobra estilo Manhattan para barra externa de paletós e blazers.',
     accentColor: '#0F172A'
   },
   {
     id: 'gal-3',
     title: 'Etiqueta Pontas Dobradas para Camisaria',
-    segment: 'Beachwear',
+    segment: 'Beachwear & Casual',
     fabric: 'Tafetá',
     cut: 'Pontas',
-    image: 'https://images.unsplash.com/photo-1607082348824-0a96f2a4b9da?auto=format&fit=crop&w=800&q=80',
+    description: 'Acabamento em abas viradas para trás (End Fold), costura limpa nas laterais sem precisar abrir a costura principal.',
     accentColor: '#E11D48'
   },
   {
@@ -156,7 +150,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
     segment: 'Jeanswear',
     fabric: 'Super Batido',
     cut: 'Só Cortada',
-    image: 'https://images.unsplash.com/photo-1542272604-780c96856592?auto=format&fit=crop&w=800&q=80',
+    description: 'Trama de altíssima compactação com resistência comprovada a processos agressivos de estonagem e lavanderia industrial.',
     accentColor: '#1E3A8A'
   },
   {
@@ -165,7 +159,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
     segment: 'Slow Fashion',
     fabric: 'Dupla Densidade',
     cut: 'Dobra Meio',
-    image: 'https://images.unsplash.com/photo-1489987707025-afc232f7ea0f?auto=format&fit=crop&w=800&q=80',
+    description: '50% superior em Alta Definição para nitidez do nome da marca e 50% inferior em Tafetá econômico para tamanho e cuidados.',
     accentColor: '#15803D'
   },
   {
@@ -174,7 +168,7 @@ export const GALLERY_ITEMS: GalleryItem[] = [
     segment: 'Moda Infantil',
     fabric: 'Tafetá Gold',
     cut: 'Laser',
-    image: 'https://images.unsplash.com/photo-1515488042361-ee00e0ddd4e4?auto=format&fit=crop&w=800&q=80',
+    description: 'Bordas ultrassônicas seladas sem rebarbas para garantir zero atrito e toque antialérgico na pele infantil.',
     accentColor: '#EC4899'
   }
 ];
@@ -187,18 +181,18 @@ export const FAQ_ITEMS: FAQItem[] = [
   },
   {
     category: 'producao',
-    question: 'Qual é a quantidade mínima de etiquetas por pedido?',
-    answer: 'A quantidade mínima varia de acordo com a largura da etiqueta. Para larguras até 25mm, o mínimo é de 100 unidades. Para larguras de 26mm a 40mm, o mínimo é de 200 unidades. Para larguras acima de 40mm, o mínimo é de 500 unidades.'
+    question: 'Há quantidade mínima de etiquetas?',
+    answer: 'Não exigimos quantidade mínima bloqueante! Você pode solicitar qualquer tiragem desejada no configurador. Lotes maiores contam com descontos progressivos por escala.'
   },
   {
     category: 'arquivos',
-    question: 'Como funciona o envio da arte e a aprovação?',
-    answer: 'Você pode criar sua arte diretamente no nosso configurador online ou enviar um arquivo pronto em PDF ou SVG. Após o envio, nossa equipe analisa a arte e as configurações. Se necessário, solicitamos ajustes. Somente após a aprovação da arte é que o orçamento definitivo é informado e o pagamento é liberado. Você nunca paga antes de aprovar o layout.'
+    question: 'Como funciona a aprovação do layout?',
+    answer: 'Você cria sua arte diretamente no nosso configurador online, visualiza a prévia e a simulação de tear e envia o pedido para a equipe. Nossa equipe analisa os fios e a tecelagem e retorna com a prova digital oficial para validação. Você só efetua o pagamento após aprovar 100% o layout e o valor definitivo.'
   },
   {
-    category: 'arquivos',
-    question: 'Quais formatos de arquivo são aceitos?',
-    answer: 'Para envio de arte pronta, aceitamos arquivos nos formatos PDF e SVG. Se você tiver seu logotipo em outro formato, entre em contato pelo WhatsApp que nossa equipe pode ajudar na conversão.'
+    category: 'producao',
+    question: 'Quais tipos de corte e acabamento estão disponíveis?',
+    answer: 'Oferecemos os seguintes cortes e acabamentos: Dobra Meio (para gola e costuras embutidas), Pontas (pontas dobradas para costura reta), Só Cortada (sem dobras), Meio e Pontas (combinação), Rolo (entrega em rolo contínuo), Laser (corte a laser com bordas seladas), Manhattan (acabamento especial) e 2 Cortes (para composição dupla).'
   },
   {
     category: 'prazos',
@@ -208,11 +202,6 @@ export const FAQ_ITEMS: FAQItem[] = [
   {
     category: 'pagamento',
     question: 'Quando e como eu pago?',
-    answer: 'O pagamento só é feito APÓS a aprovação da arte pela nossa equipe e pelo cliente. Primeiro você configura e envia o pedido, depois nossa equipe analisa e aprova, então o orçamento definitivo é informado e o pagamento é liberado. As formas de pagamento e condições são informadas junto com o orçamento final.'
-  },
-  {
-    category: 'producao',
-    question: 'Quais tipos de corte e acabamento estão disponíveis?',
-    answer: 'Oferecemos os seguintes cortes e acabamentos: Dobra Meio (para gola e costuras embutidas), Pontas (pontas dobradas para costura reta), Só Cortada (sem dobras), Meio e Pontas (combinação), Rolo (entrega em rolo contínuo), Laser (corte a laser com bordas seladas), Manhattan (acabamento especial) e 2 Cortes (para composição dupla).'
+    answer: 'O pagamento só é feito APÓS a aprovação da arte pela nossa equipe e pelo cliente. Primeiro você configura e envia o pedido, depois nossa equipe analisa e aprova, então o orçamento definitivo é informado e o pagamento é liberado.'
   }
 ];

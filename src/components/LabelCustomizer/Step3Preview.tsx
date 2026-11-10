@@ -1,7 +1,7 @@
-import React, { useState } from 'react';
-import { ZoomIn, ZoomOut, RotateCw, AlertTriangle, Layers, Info } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { ZoomIn, ZoomOut, RotateCw, Download, Eye, LayoutGrid } from 'lucide-react';
 import { PhysicalConfig, ArtworkConfig } from '../../types';
-import { FABRIC_OPTIONS, CUT_OPTIONS } from '../../data/adminConfig';
+import { isLurexThread, getLurexColor } from '../../data/adminConfig';
 
 interface Step3Props {
   config: PhysicalConfig;
@@ -9,294 +9,413 @@ interface Step3Props {
 }
 
 export const Step3Preview: React.FC<Step3Props> = ({ config, artwork }) => {
+  const [viewMode, setViewMode] = useState<'loom' | 'single'>('loom');
   const [zoomLevel, setZoomLevel] = useState(1);
+  const [labelImageUrl, setLabelImageUrl] = useState<string>('');
+  const [isRendering, setIsRendering] = useState(true);
 
-  const fabric = FABRIC_OPTIONS.find(f => f.id === config.fabricId);
-  const fabricName = fabric?.name ?? config.fabricId;
-  const cutName = CUT_OPTIONS.find(c => c.id === config.cutId)?.name ?? config.cutId;
+  // ─────────────────────────────────────────────────────────────
+  // RASTERIZAÇÃO DA ETIQUETA EM IMAGEM DE ALTA DEFINIÇÃO (PNG)
+  // ─────────────────────────────────────────────────────────────
+  useEffect(() => {
+    let isMounted = true;
 
-  // Proportional scale factor mm to px
-  const scaleFactor = 4.5;
-  const widthPx = Math.max(130, Math.min(380, config.widthMm * scaleFactor));
-  const heightPx = Math.max(130, Math.min(520, config.lengthMm * scaleFactor));
+    const renderLabelToImage = () => {
+      try {
+        const dpr = Math.max(2, window.devicePixelRatio || 1);
+        const pxPerMm = 10 * dpr;
+        const canvasWidth = Math.max(160, Math.round(config.widthMm * pxPerMm));
+        const canvasHeight = Math.max(160, Math.round(config.lengthMm * pxPerMm));
 
-  // Determine loom weave texture and text pixelation class
-  const getWeaveClasses = () => {
-    switch (config.fabricId) {
-      case 'tafeta':
-        return {
-          container: 'tear-weave-tafeta',
-          text: 'tear-text-tafeta',
-          badge: 'Baixa Definição (Trama Aberta de Tear)',
-          desc: 'Pontos maiores e mais pixelizados característicos do Tafetá.',
+        const canvas = document.createElement('canvas');
+        canvas.width = canvasWidth;
+        canvas.height = canvasHeight;
+
+        const ctx = canvas.getContext('2d');
+        if (!ctx) return;
+
+        // 1. Fundo da fita
+        ctx.fillStyle = artwork.backgroundColor || '#FFFFFF';
+        ctx.fillRect(0, 0, canvasWidth, canvasHeight);
+
+        // 2. Simulação de Trama Têxtil conforme o Tecido Escolhido
+        const isDupla = config.fabricId === 'dupla_densidade';
+
+        const drawWeaveLines = (startY: number, endY: number, stepPx: number, alpha: number) => {
+          ctx.save();
+          ctx.strokeStyle = `rgba(0, 0, 0, ${alpha})`;
+          ctx.lineWidth = Math.max(1, 1 * dpr);
+          for (let y = startY; y < endY; y += stepPx) {
+            ctx.beginPath();
+            ctx.moveTo(0, y);
+            ctx.lineTo(canvasWidth, y);
+            ctx.stroke();
+          }
+          ctx.strokeStyle = `rgba(255, 255, 255, ${alpha * 0.8})`;
+          for (let x = 0; x < canvasWidth; x += stepPx) {
+            ctx.beginPath();
+            ctx.moveTo(x, startY);
+            ctx.lineTo(x, endY);
+            ctx.stroke();
+          }
+          ctx.restore();
         };
-      case 'tafeta_gold':
-        return {
-          container: 'tear-weave-tafeta-gold',
-          text: 'tear-text-tafeta-gold',
-          badge: 'Definição Intermediária Suave',
-          desc: 'Equilíbrio com pontos refinados e textura sutil.',
-        };
-      case 'dupla_densidade':
-        return {
-          container: 'tear-weave-dupla',
-          text: '', // handled conditionally per half
-          badge: 'Dupla Densidade (50% Alta / 50% Baixa)',
-          desc: 'Metade superior em Alta Definição e metade inferior em Tafetá.',
-        };
-      case 'super_batido':
-        return {
-          container: 'tear-weave-super-batido',
-          text: 'tear-text-super-batido',
-          badge: 'Super Batido (Máxima Definição & Trama Compacta)',
-          desc: 'Batida máxima do tear, pontos extremamente compactos e densos.',
-        };
-      case 'alta_definicao':
-      default:
-        return {
-          container: 'tear-weave-alta-definicao',
-          text: 'tear-text-alta-definicao',
-          badge: 'Alta Definição (Fios Finos & Nitidez)',
-          desc: 'Pontos densos para traços finos e máxima legibilidade.',
-        };
+
+        if (isDupla) {
+          const halfH = canvasHeight / 2;
+          drawWeaveLines(0, halfH, Math.max(3, Math.round(pxPerMm * 0.35)), 0.08);
+          drawWeaveLines(halfH, canvasHeight, Math.max(6, Math.round(pxPerMm * 0.85)), 0.17);
+
+          // Divisão da dupla densidade
+          ctx.save();
+          ctx.setLineDash([8 * dpr, 6 * dpr]);
+          ctx.strokeStyle = 'rgba(239, 68, 68, 0.45)';
+          ctx.lineWidth = 1.5 * dpr;
+          ctx.beginPath();
+          ctx.moveTo(0, halfH);
+          ctx.lineTo(canvasWidth, halfH);
+          ctx.stroke();
+          ctx.restore();
+        } else if (config.fabricId === 'tafeta') {
+          drawWeaveLines(0, canvasHeight, Math.max(6, Math.round(pxPerMm * 0.85)), 0.18);
+        } else if (config.fabricId === 'tafeta_gold') {
+          drawWeaveLines(0, canvasHeight, Math.max(4, Math.round(pxPerMm * 0.5)), 0.12);
+        } else if (config.fabricId === 'super_batido') {
+          drawWeaveLines(0, canvasHeight, Math.max(2, Math.round(pxPerMm * 0.25)), 0.09);
+        } else {
+          // Alta Definição
+          drawWeaveLines(0, canvasHeight, Math.max(3, Math.round(pxPerMm * 0.35)), 0.08);
+        }
+
+        // 3. Marcações das dobras (contínua) e cortes (traçada) - Sem números
+        // Na opção Rolo, a produção é contínua sem dobra ou corte algum!
+        if (config.cutId !== 'rolo') {
+          // A) Traçada para corte (extremidades superior e inferior)
+          ctx.save();
+          ctx.setLineDash([8 * dpr, 5 * dpr]); // linha traçada
+          ctx.strokeStyle = 'rgba(239, 68, 68, 0.65)';
+          ctx.lineWidth = 1.8 * dpr;
+          // Corte topo
+          ctx.beginPath();
+          ctx.moveTo(0, 2 * dpr);
+          ctx.lineTo(canvasWidth, 2 * dpr);
+          ctx.stroke();
+          // Corte base
+          ctx.beginPath();
+          ctx.moveTo(0, canvasHeight - 2 * dpr);
+          ctx.lineTo(canvasWidth, canvasHeight - 2 * dpr);
+          ctx.stroke();
+          ctx.restore();
+
+          // B) Contínua para dobra (conforme tipo de dobra)
+          if (config.cutId === 'dobra_meio') {
+            ctx.save();
+            ctx.setLineDash([]); // linha contínua
+            ctx.strokeStyle = 'rgba(239, 68, 68, 0.75)';
+            ctx.lineWidth = 2 * dpr;
+            ctx.beginPath();
+            ctx.moveTo(0, canvasHeight / 2);
+            ctx.lineTo(canvasWidth, canvasHeight / 2);
+            ctx.stroke();
+            ctx.restore();
+          } else if (config.cutId === 'pontas') {
+            ctx.save();
+            ctx.setLineDash([]); // contínua
+            ctx.strokeStyle = 'rgba(239, 68, 68, 0.75)';
+            ctx.lineWidth = 2 * dpr;
+            // Dobra ponta superior (10%)
+            ctx.beginPath();
+            ctx.moveTo(0, canvasHeight * 0.1);
+            ctx.lineTo(canvasWidth, canvasHeight * 0.1);
+            ctx.stroke();
+            // Dobra ponta inferior (90%)
+            ctx.beginPath();
+            ctx.moveTo(0, canvasHeight * 0.9);
+            ctx.lineTo(canvasWidth, canvasHeight * 0.9);
+            ctx.stroke();
+            ctx.restore();
+          } else if (config.cutId === 'meio_e_pontas') {
+            ctx.save();
+            ctx.setLineDash([]); // contínua
+            ctx.strokeStyle = 'rgba(239, 68, 68, 0.75)';
+            ctx.lineWidth = 2 * dpr;
+            // Dobra central
+            ctx.beginPath();
+            ctx.moveTo(0, canvasHeight / 2);
+            ctx.lineTo(canvasWidth, canvasHeight / 2);
+            ctx.stroke();
+            // Dobras nas pontas
+            ctx.beginPath();
+            ctx.moveTo(0, canvasHeight * 0.1);
+            ctx.lineTo(canvasWidth, canvasHeight * 0.1);
+            ctx.moveTo(0, canvasHeight * 0.9);
+            ctx.lineTo(canvasWidth, canvasHeight * 0.9);
+            ctx.stroke();
+            ctx.restore();
+          } else if (config.cutId === 'manhattan') {
+            ctx.save();
+            ctx.setLineDash([]); // contínua
+            ctx.strokeStyle = 'rgba(239, 68, 68, 0.75)';
+            ctx.lineWidth = 2 * dpr;
+            // Dobra meio
+            ctx.beginPath();
+            ctx.moveTo(0, canvasHeight / 2);
+            ctx.lineTo(canvasWidth, canvasHeight / 2);
+            ctx.stroke();
+            // Dobra superior invertida
+            ctx.beginPath();
+            ctx.moveTo(0, canvasHeight * 0.12);
+            ctx.lineTo(canvasWidth, canvasHeight * 0.12);
+            ctx.stroke();
+            ctx.restore();
+          }
+          // 'so_cortada': apenas o traçado de corte já feito acima, sem dobra contínua.
+        }
+
+        // 4. Renderização dos textos com trava de cor para Lurex
+        const isLurex = isLurexThread(config.threadId);
+        const lurexColor = getLurexColor(config.threadId);
+        const baseFontScale = pxPerMm / 4.2;
+
+        artwork.textElements.forEach(el => {
+          const text = el.uppercase ? el.text.toUpperCase() : el.text;
+          if (!text.trim()) return;
+
+          ctx.save();
+          const fontSize = Math.max(12, Math.round(el.fontSize * baseFontScale));
+          const fontStyle = `${el.italic ? 'italic ' : ''}${el.bold ? 'bold ' : ''}${fontSize}px "${el.fontFamily}", system-ui, -apple-system, sans-serif`;
+          ctx.font = fontStyle;
+          // Se for Lurex Ouro ou Prata, força a cor metálica fixa
+          ctx.fillStyle = isLurex && lurexColor ? lurexColor : el.color;
+          ctx.textBaseline = 'middle';
+
+          const targetY = (el.y / 100) * canvasHeight;
+          let targetX = canvasWidth / 2;
+
+          if (el.alignment === 'left') {
+            targetX = canvasWidth * 0.08;
+            ctx.textAlign = 'left';
+          } else if (el.alignment === 'right') {
+            targetX = canvasWidth * 0.92;
+            ctx.textAlign = 'right';
+          } else {
+            ctx.textAlign = 'center';
+          }
+
+          if (el.rotation === 90) {
+            ctx.translate(targetX, targetY);
+            ctx.rotate(Math.PI / 2);
+            ctx.textAlign = el.alignment;
+            ctx.fillText(text, 0, 0);
+          } else {
+            ctx.fillText(text, targetX, targetY);
+          }
+          ctx.restore();
+        });
+
+        const dataUrl = canvas.toDataURL('image/png');
+        if (isMounted) {
+          setLabelImageUrl(dataUrl);
+          setIsRendering(false);
+        }
+      } catch (err) {
+        console.error('Erro ao renderizar etiqueta:', err);
+      }
+    };
+
+    setIsRendering(true);
+    if (document.fonts?.ready) {
+      document.fonts.ready.then(renderLabelToImage);
+    } else {
+      renderLabelToImage();
     }
+
+    return () => {
+      isMounted = false;
+    };
+  }, [config, artwork]);
+
+  // Fitas e repetições
+  const numColumns = Math.max(4, Math.min(12, Math.round(120 / config.widthMm)));
+  const numVerticalRepeats = Math.max(3, Math.min(6, Math.round(260 / config.lengthMm)));
+
+  const handleDownload = () => {
+    if (!labelImageUrl) return;
+    const link = document.createElement('a');
+    link.download = `etiqueta-${config.widthMm}x${config.lengthMm}mm.png`;
+    link.href = labelImageUrl;
+    link.click();
   };
 
-  const weaveInfo = getWeaveClasses();
-  const isDupla = config.fabricId === 'dupla_densidade';
-
   return (
-    <div className="space-y-6">
-      {/* Fabric Weave Indicator Badge */}
-      <div className="bg-slate-800 text-white p-3.5 rounded-xl border border-slate-700 flex flex-wrap items-center justify-between gap-2 text-xs">
-        <div className="flex items-center space-x-2">
-          <Layers className="w-4 h-4 text-brand-400" />
-          <span className="font-bold text-white">Simulação de Tear:</span>
-          <span className="bg-brand/20 text-brand-300 font-semibold px-2 py-0.5 rounded border border-brand/40">
-            {weaveInfo.badge}
-          </span>
+    <div className="space-y-4">
+      {/* Barra de controle discreta */}
+      <div className="flex items-center justify-between gap-3 bg-surface-100 dark:bg-slate-800 p-2.5 rounded-2xl border border-surface-200 dark:border-slate-700">
+        <div className="flex items-center space-x-1.5">
+          <button
+            type="button"
+            onClick={() => setViewMode('loom')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 ${
+              viewMode === 'loom'
+                ? 'bg-brand text-white shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            <LayoutGrid className="w-3.5 h-3.5" />
+            <span>Simulação no Tear</span>
+          </button>
+          <button
+            type="button"
+            onClick={() => setViewMode('single')}
+            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center space-x-1.5 ${
+              viewMode === 'single'
+                ? 'bg-brand text-white shadow-sm'
+                : 'text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white'
+            }`}
+          >
+            <Eye className="w-3.5 h-3.5" />
+            <span>Etiqueta Unitária</span>
+          </button>
         </div>
-        <span className="text-slate-400 text-[11px]">{weaveInfo.desc}</span>
+
+        {labelImageUrl && (
+          <button
+            type="button"
+            onClick={handleDownload}
+            className="px-3 py-1.5 rounded-xl text-xs font-bold text-slate-700 dark:text-slate-200 hover:bg-white dark:hover:bg-slate-700 border border-slate-200 dark:border-slate-600 transition-all flex items-center space-x-1.5"
+            title="Baixar imagem da etiqueta em PNG"
+          >
+            <Download className="w-3.5 h-3.5" />
+            <span className="hidden sm:inline">Baixar Imagem</span>
+          </button>
+        )}
       </div>
 
-      {/* Preview Stage */}
-      <div className="bg-slate-900 rounded-2xl p-6 border border-slate-800 shadow-card">
-        {/* Top Info bar */}
-        <div className="flex flex-wrap items-center justify-between gap-2 mb-4 pb-3 border-b border-slate-800">
-          <div className="text-xs text-slate-300 space-x-2 font-medium">
-            <span className="font-bold text-white">{config.widthMm}mm × {config.lengthMm}mm</span>
-            <span>•</span>
-            <span>{fabricName}</span>
-            <span>•</span>
-            <span className="text-brand-300">{cutName}</span>
-          </div>
-
-          <div className="flex items-center space-x-1.5">
-            <button
-              type="button"
-              onClick={() => setZoomLevel(z => Math.max(0.6, z - 0.15))}
-              className="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
-              title="Diminuir zoom"
-            >
-              <ZoomOut className="w-4 h-4" />
-            </button>
-            <span className="text-xs text-slate-400 font-mono min-w-[42px] text-center">
-              {Math.round(zoomLevel * 100)}%
-            </span>
-            <button
-              type="button"
-              onClick={() => setZoomLevel(z => Math.min(2.2, z + 0.15))}
-              className="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
-              title="Aumentar zoom"
-            >
-              <ZoomIn className="w-4 h-4" />
-            </button>
-            <button
-              type="button"
-              onClick={() => setZoomLevel(1)}
-              className="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
-              title="Resetar zoom"
-            >
-              <RotateCw className="w-4 h-4" />
-            </button>
+      {/* ─────────────────────────────────────────────────────────────
+          SIMULAÇÃO DA ETIQUETA NO TEAR INDUSTRIAL
+          Etiquetas juntas ao máximo com traçado fino separando-as
+          ───────────────────────────────────────────────────────────── */}
+      {viewMode === 'loom' ? (
+        <div className="bg-[#0b0f19] rounded-2xl p-4 sm:p-8 border border-slate-800 shadow-2xl overflow-hidden">
+          <div
+            className="overflow-x-auto pb-4 pt-2 flex items-start justify-center min-w-full"
+            style={{
+              backgroundImage: `
+                radial-gradient(circle, rgba(255, 255, 255, 0.05) 1px, transparent 1px)
+              `,
+              backgroundSize: '16px 16px',
+            }}
+          >
+            {/* Bloco compacto com etiquetas unidas ao máximo */}
+            <div className="inline-flex items-start justify-center flex-nowrap border border-slate-700/80 rounded-md overflow-hidden bg-black/60 shadow-2xl">
+              {Array.from({ length: numColumns }).map((_, colIdx) => (
+                <div
+                  key={`col-${colIdx}`}
+                  className={`flex flex-col items-center flex-shrink-0 ${
+                    colIdx < numColumns - 1 ? 'border-r border-slate-700/60' : ''
+                  }`}
+                  style={{
+                    width: `${Math.max(34, Math.min(110, config.widthMm * 2.8))}px`,
+                  }}
+                >
+                  {Array.from({ length: numVerticalRepeats }).map((_, repIdx) => (
+                    <div
+                      key={`col-${colIdx}-rep-${repIdx}`}
+                      className={`w-full relative select-none ${
+                        config.cutId === 'rolo'
+                          ? '' // Rolo: contínuo sem corte ou separação
+                          : repIdx < numVerticalRepeats - 1
+                          ? 'border-b border-dashed border-red-500/40' // Traçado fino separando
+                          : ''
+                      }`}
+                    >
+                      {labelImageUrl ? (
+                        <img
+                          src={labelImageUrl}
+                          alt="Etiqueta no tear"
+                          className="w-full h-auto block select-none pointer-events-none"
+                          style={{
+                            aspectRatio: `${config.widthMm} / ${config.lengthMm}`,
+                          }}
+                        />
+                      ) : (
+                        <div
+                          className="w-full bg-slate-800 animate-pulse"
+                          style={{
+                            aspectRatio: `${config.widthMm} / ${config.lengthMm}`,
+                          }}
+                        />
+                      )}
+                    </div>
+                  ))}
+                </div>
+              ))}
+            </div>
           </div>
         </div>
-
-        {/* Canvas area */}
-        <div
-          className="flex items-center justify-center min-h-[360px] sm:min-h-[440px] overflow-auto p-4"
-          style={{
-            backgroundImage: 'radial-gradient(rgba(255,255,255,0.06) 1px, transparent 1px)',
-            backgroundSize: '16px 16px',
-          }}
-        >
-          {artwork.mode === 'upload' ? (
-            /* Upload preview */
-            <div className="text-center space-y-4" style={{ transform: `scale(${zoomLevel})` }}>
-              {artwork.uploadedFileUrl && artwork.uploadedFileType === 'image/svg+xml' ? (
-                <div
-                  className={`border border-slate-600 rounded-sm p-4 inline-block shadow-2xl relative ${weaveInfo.container}`}
-                  style={{ width: `${widthPx}px`, minHeight: `${heightPx}px`, backgroundColor: artwork.backgroundColor }}
-                >
-                  <img
-                    src={artwork.uploadedFileUrl}
-                    alt="Arte enviada"
-                    className="max-w-full max-h-full object-contain mx-auto"
-                    style={{ maxHeight: `${heightPx - 32}px` }}
-                  />
-                </div>
-              ) : artwork.uploadedFileName ? (
-                <div
-                  className="border-2 border-dashed border-slate-600 rounded-lg p-6 flex flex-col items-center justify-center bg-slate-800/80 shadow-xl"
-                  style={{ width: `${widthPx}px`, minHeight: `${heightPx}px` }}
-                >
-                  <div className="text-4xl mb-3">📄</div>
-                  <p className="text-sm text-slate-200 font-bold">{artwork.uploadedFileName}</p>
-                  <p className="text-xs text-slate-400 mt-2 max-w-xs text-center">
-                    Arquivo enviado para análise técnica.
-                  </p>
-                  <p className="text-[11px] text-brand-300 mt-1 font-semibold">
-                    Nossa equipe revisará sangrias e amarração de fios.
-                  </p>
-                </div>
-              ) : (
-                <div className="text-slate-400 text-sm">
-                  Nenhum arquivo enviado na Etapa 2.
-                </div>
-              )}
-
-              <div className="text-xs text-slate-400">
-                {config.widthMm}mm × {config.lengthMm}mm • Arquivo enviado para análise técnica
-              </div>
+      ) : (
+        /* ─────────────────────────────────────────────────────────────
+            VISUALIZAÇÃO DA ETIQUETA INDIVIDUAL COM ZOOM
+            ───────────────────────────────────────────────────────────── */
+        <div className="bg-slate-900 rounded-2xl p-6 border border-slate-800 text-white shadow-card space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-slate-800">
+            <span className="text-xs font-bold text-slate-300 font-mono">
+              ETIQUETA INDIVIDUAL ({config.widthMm}mm × {config.lengthMm}mm)
+            </span>
+            <div className="flex items-center space-x-1.5">
+              <button
+                type="button"
+                onClick={() => setZoomLevel(z => Math.max(0.6, z - 0.2))}
+                className="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+                title="Diminuir zoom"
+              >
+                <ZoomOut className="w-4 h-4" />
+              </button>
+              <span className="text-xs text-slate-400 font-mono min-w-[42px] text-center">
+                {Math.round(zoomLevel * 100)}%
+              </span>
+              <button
+                type="button"
+                onClick={() => setZoomLevel(z => Math.min(2.5, z + 0.2))}
+                className="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+                title="Aumentar zoom"
+              >
+                <ZoomIn className="w-4 h-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() => setZoomLevel(1)}
+                className="p-1.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+                title="Resetar zoom"
+              >
+                <RotateCw className="w-4 h-4" />
+              </button>
             </div>
-          ) : (
-            /* Online art preview with Loom Woven Pixelation */
-            <div
-              className="transition-transform duration-200"
-              style={{ transform: `scale(${zoomLevel})` }}
-            >
-              {/* The label representation */}
+          </div>
+
+          <div className="flex items-center justify-center min-h-[340px] overflow-auto p-6 bg-[#070b14] rounded-xl border border-slate-800/80">
+            {labelImageUrl && (
               <div
-                className="relative rounded-xs label-elevation overflow-hidden select-none"
                 style={{
-                  width: `${widthPx}px`,
-                  height: `${heightPx}px`,
-                  backgroundColor: artwork.backgroundColor,
+                  transform: `scale(${zoomLevel})`,
+                  transformOrigin: 'center center',
+                  transition: 'transform 0.15s ease-out',
                 }}
               >
-                {/* ── DUPLA DENSIDADE: METADE ALTA (TOPO) E METADE BAIXA (BASE) ── */}
-                {isDupla ? (
-                  <>
-                    {/* Top Half: Alta Definição */}
-                    <div
-                      className="absolute inset-x-0 top-0 h-1/2 tear-weave-alta-definicao border-b border-dashed border-brand/40 pointer-events-none z-0"
-                    >
-                      <span className="absolute top-1 right-1 text-[8px] font-mono font-bold bg-slate-900/75 text-emerald-300 px-1 rounded">
-                        Alta Definição (Logotipo)
-                      </span>
-                    </div>
-
-                    {/* Bottom Half: Baixa Definição (Tafetá) */}
-                    <div
-                      className="absolute inset-x-0 bottom-0 h-1/2 tear-weave-tafeta pointer-events-none z-0"
-                    >
-                      <span className="absolute bottom-1 right-1 text-[8px] font-mono font-bold bg-slate-900/75 text-amber-300 px-1 rounded">
-                        Tafetá (Composição)
-                      </span>
-                    </div>
-                  </>
-                ) : (
-                  /* Single Fabric Weave Texture */
-                  <div className={`absolute inset-0 pointer-events-none z-0 ${weaveInfo.container}`} />
-                )}
-
-                {/* Visual marker for Dobra Meio */}
-                {config.cutId === 'dobra_meio' && (
-                  <div className="absolute left-0 right-0 top-1/2 -translate-y-1/2 border-t-2 border-dashed border-red-500/60 pointer-events-none z-20 flex items-center justify-end pr-2">
-                    <span className="text-[9px] font-mono font-bold text-red-600 bg-white/90 px-1 rounded shadow-xs">
-                      Linha de Dobra
-                    </span>
-                  </div>
-                )}
-
-                {/* Visual marker for Pontas */}
-                {config.cutId === 'pontas' && (
-                  <>
-                    <div className="absolute left-0 top-0 bottom-0 w-3 border-r border-dashed border-red-400/60 pointer-events-none z-20 bg-black/10" />
-                    <div className="absolute right-0 top-0 bottom-0 w-3 border-l border-dashed border-red-400/60 pointer-events-none z-20 bg-black/10" />
-                  </>
-                )}
-
-                {/* Text elements rendered with pixelated thread styling and rotation support */}
-                {artwork.textElements.map(el => {
-                  const displayText = el.uppercase ? el.text.toUpperCase() : el.text;
-                  if (!displayText) return null;
-
-                  // Text pixelation styling based on fabric & position (if dupla densidade)
-                  let pixelClass = weaveInfo.text;
-                  if (isDupla) {
-                    pixelClass = el.y < 50 ? 'tear-text-alta-definicao' : 'tear-text-tafeta';
-                  }
-
-                  const isRotated = el.rotation === 90;
-
-                  return (
-                    <div
-                      key={el.id}
-                      className="absolute left-0 right-0 px-2 z-10 pointer-events-none flex items-center justify-center"
-                      style={{
-                        top: `${el.y}%`,
-                        transform: 'translateY(-50%)',
-                        justifyContent: el.alignment === 'left' ? 'flex-start' : el.alignment === 'right' ? 'flex-end' : 'center',
-                      }}
-                    >
-                      <span
-                        className={pixelClass}
-                        style={{
-                          fontFamily: el.fontFamily,
-                          fontSize: `${el.fontSize}px`,
-                          color: el.color,
-                          fontWeight: el.bold ? 'bold' : 'normal',
-                          fontStyle: el.italic ? 'italic' : 'normal',
-                          lineHeight: 1.15,
-                          wordBreak: 'break-word',
-                          display: 'inline-block',
-                          transform: isRotated ? 'rotate(90deg)' : 'none',
-                          transformOrigin: 'center center',
-                        }}
-                      >
-                        {displayText}
-                      </span>
-                    </div>
-                  );
-                })}
-
-                {/* Empty state */}
-                {artwork.textElements.length === 0 && (
-                  <div className="absolute inset-0 flex items-center justify-center text-xs text-slate-400 p-4 text-center z-10">
-                    Volte à Etapa 2 para adicionar textos à sua etiqueta.
-                  </div>
-                )}
+                <img
+                  src={labelImageUrl}
+                  alt="Etiqueta individual"
+                  className="rounded-xs shadow-2xl block select-none pointer-events-none"
+                  style={{
+                    width: `${Math.max(80, Math.min(320, config.widthMm * 4.5))}px`,
+                    aspectRatio: `${config.widthMm} / ${config.lengthMm}`,
+                  }}
+                />
               </div>
-
-              {/* Dimension indicators below */}
-              <div className="mt-3 flex items-center justify-center space-x-4 text-xs font-mono text-slate-400">
-                <span>↔ Largura: {config.widthMm}mm</span>
-                <span>•</span>
-                <span>↕ Comprimento: {config.lengthMm}mm</span>
-              </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
-      </div>
-
-      {/* Info note */}
-      <div className="bg-surface-50 rounded-xl border border-surface-200 p-4 text-xs text-slate-600 flex items-start space-x-2.5">
-        <Info className="w-4 h-4 text-slate-500 flex-shrink-0 mt-0.5" />
-        <p className="leading-relaxed">
-          <strong>Fidelidade de Tecelagem:</strong> A textura de tear reflete a resolução do tecido selecionado (Tafetá possui menor definição de pontos, Alta Definição apresenta maior densidade, Super Batido oferece a máxima compactação e Dupla Densidade divide metade superior em alta e inferior em tafetá).
-        </p>
-      </div>
+      )}
     </div>
   );
 };

@@ -15,7 +15,7 @@ import { Step2ArtCreation } from './Step2ArtCreation';
 import { Step3Preview } from './Step3Preview';
 import { Step4QuoteOrder } from './Step4QuoteOrder';
 import { PhysicalConfig, ArtworkConfig, Product } from '../../types';
-import { getMinQuantity, FABRIC_OPTIONS, CUT_OPTIONS } from '../../data/adminConfig';
+import { getMinQuantity, FABRIC_OPTIONS, CUT_OPTIONS, getLurexColor } from '../../data/adminConfig';
 
 interface LabelCustomizerProps {
   selectedProduct?: Product | null;
@@ -67,13 +67,25 @@ export const LabelCustomizer: React.FC<LabelCustomizerProps> = ({ selectedProduc
         y: 65,
       },
     ],
-    uploadedFileUrl: null,
-    uploadedFileName: null,
-    uploadedFileType: null,
   });
 
   const handleUpdateConfig = (updated: Partial<PhysicalConfig>) => {
-    setConfig(prev => ({ ...prev, ...updated }));
+    setConfig(prev => {
+      const next = { ...prev, ...updated };
+      if (updated.threadId) {
+        const lurexColor = getLurexColor(updated.threadId);
+        if (lurexColor) {
+          setArtwork(prevArt => ({
+            ...prevArt,
+            textElements: prevArt.textElements.map(el => ({
+              ...el,
+              color: lurexColor,
+            })),
+          }));
+        }
+      }
+      return next;
+    });
   };
 
   const handleUpdateArtwork = (updated: Partial<ArtworkConfig>) => {
@@ -218,6 +230,7 @@ export const LabelCustomizer: React.FC<LabelCustomizerProps> = ({ selectedProduc
 
                 <Step2ArtCreation
                   artwork={artwork}
+                  threadId={config.threadId}
                   onChange={handleUpdateArtwork}
                 />
 
@@ -349,6 +362,39 @@ export const LabelCustomizer: React.FC<LabelCustomizerProps> = ({ selectedProduc
                         <div className={`absolute inset-0 pointer-events-none ${getMiniWeaveClass()}`} />
                       )}
 
+                      {/* Marcações de dobras (contínua) e cortes (traçada) - sem números */}
+                      {config.cutId !== 'rolo' && (
+                        <>
+                          {/* Cortes: Linhas traçadas nas extremidades */}
+                          <div className="absolute inset-x-0 top-0 border-t border-dashed border-red-500/50 pointer-events-none z-10" />
+                          <div className="absolute inset-x-0 bottom-0 border-b border-dashed border-red-500/50 pointer-events-none z-10" />
+
+                          {/* Dobras: Linhas contínuas */}
+                          {config.cutId === 'dobra_meio' && (
+                            <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t border-solid border-red-500/60 pointer-events-none z-10" />
+                          )}
+                          {config.cutId === 'pontas' && (
+                            <>
+                              <div className="absolute inset-x-0 top-[10%] border-t border-solid border-red-500/60 pointer-events-none z-10" />
+                              <div className="absolute inset-x-0 bottom-[10%] border-b border-solid border-red-500/60 pointer-events-none z-10" />
+                            </>
+                          )}
+                          {config.cutId === 'meio_e_pontas' && (
+                            <>
+                              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t border-solid border-red-500/60 pointer-events-none z-10" />
+                              <div className="absolute inset-x-0 top-[10%] border-t border-solid border-red-500/60 pointer-events-none z-10" />
+                              <div className="absolute inset-x-0 bottom-[10%] border-b border-solid border-red-500/60 pointer-events-none z-10" />
+                            </>
+                          )}
+                          {config.cutId === 'manhattan' && (
+                            <>
+                              <div className="absolute inset-x-0 top-1/2 -translate-y-1/2 border-t border-solid border-red-500/60 pointer-events-none z-10" />
+                              <div className="absolute inset-x-0 top-[12%] border-t border-solid border-red-500/60 pointer-events-none z-10" />
+                            </>
+                          )}
+                        </>
+                      )}
+
                       {artwork.textElements.map(el => {
                         const displayText = el.uppercase ? el.text.toUpperCase() : el.text;
                         if (!displayText) return null;
@@ -372,6 +418,7 @@ export const LabelCustomizer: React.FC<LabelCustomizerProps> = ({ selectedProduc
                                 fontWeight: el.bold ? 'bold' : 'normal',
                                 fontStyle: el.italic ? 'italic' : 'normal',
                                 lineHeight: 1.15,
+                                whiteSpace: 'nowrap',
                                 display: 'inline-block',
                                 transform: isRotated ? 'rotate(90deg)' : 'none',
                               }}
@@ -381,14 +428,6 @@ export const LabelCustomizer: React.FC<LabelCustomizerProps> = ({ selectedProduc
                           </div>
                         );
                       })}
-                    </div>
-                  ) : artwork.uploadedFileName ? (
-                    <div className="text-center p-4">
-                      <div className="text-3xl mb-1">📎</div>
-                      <p className="text-xs text-slate-300 font-bold truncate max-w-[200px]">
-                        {artwork.uploadedFileName}
-                      </p>
-                      <span className="text-[10px] text-slate-400">Arquivo pronto recebido</span>
                     </div>
                   ) : (
                     <div className="text-xs text-slate-500">

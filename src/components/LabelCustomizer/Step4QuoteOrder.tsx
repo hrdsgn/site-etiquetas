@@ -20,7 +20,6 @@ import {
   APPLICATION_OPTIONS,
   WHATSAPP_NUMBER,
   WHATSAPP_DISPLAY,
-  getMinQuantity,
 } from '../../data/adminConfig';
 
 interface Step4Props {
@@ -40,8 +39,6 @@ export const Step4QuoteOrder: React.FC<Step4Props> = ({ config, artwork }) => {
   const [copied, setCopied] = useState(false);
 
   const estimate = calculateEstimate(config);
-  const minQty = getMinQuantity(config.widthMm);
-  const isQuantityValid = config.quantity >= minQty;
 
   const fabricName = FABRIC_OPTIONS.find(f => f.id === config.fabricId)?.name ?? config.fabricId;
   const cutName = CUT_OPTIONS.find(c => c.id === config.cutId)?.name ?? config.cutId;
@@ -61,23 +58,18 @@ export const Step4QuoteOrder: React.FC<Step4Props> = ({ config, artwork }) => {
     msg += `📦 Quantidade: ${config.quantity.toLocaleString('pt-BR')} unidades\n`;
     msg += `━━━━━━━━━━━━━━━━━━━━━\n\n`;
 
-    if (artwork.mode === 'online') {
-      msg += `🎨 *ARTE CRIADA NO SITE*\n`;
-      msg += `Cor de Fundo: ${artwork.backgroundColor}\n`;
-      if (artwork.textElements.length > 0) {
-        artwork.textElements.forEach((el, i) => {
-          const txt = el.uppercase ? el.text.toUpperCase() : el.text;
-          msg += `Texto ${i + 1}: "${txt}" (Fonte: ${el.fontFamily}, Tam: ${el.fontSize}px, Cor: ${el.color}, Alinhamento: ${el.alignment})\n`;
-        });
-      } else {
-        msg += `(Sem textos inseridos no editor)\n`;
-      }
-      msg += `\n`;
-    } else if (artwork.mode === 'upload') {
-      msg += `📎 *ARTE ENVIADA EM ARQUIVO*\n`;
-      msg += `Arquivo: ${artwork.uploadedFileName || 'Arquivo anexado'}\n`;
-      msg += `(Envio o arquivo PDF/SVG a seguir nesta conversa)\n\n`;
+    msg += `🎨 *ARTE CRIADA NO SITE*\n`;
+    msg += `Cor de Fundo da Fita: ${artwork.backgroundColor}\n`;
+    if (artwork.textElements.length > 0) {
+      artwork.textElements.forEach((el, i) => {
+        const txt = el.uppercase ? el.text.toUpperCase() : el.text;
+        const orient = el.rotation === 90 ? '90° Vertical' : 'Horizontal';
+        msg += `Texto ${i + 1}: "${txt}" (Fonte: ${el.fontFamily}, Tam: ${el.fontSize}px, Cor: ${el.color}, Orientação: ${orient})\n`;
+      });
+    } else {
+      msg += `(Sem textos inseridos)\n`;
     }
+    msg += `\n`;
 
     if (quoteMode === 'automatic') {
       msg += `💰 *VALOR ESTIMADO (AUTOMÁTICO)*\n`;
@@ -108,10 +100,6 @@ export const Step4QuoteOrder: React.FC<Step4Props> = ({ config, artwork }) => {
     }
     if (!customerPhone.trim() && !customerEmail.trim()) {
       alert('Por favor, informe pelo menos um canal de contato (WhatsApp ou e-mail).');
-      return;
-    }
-    if (!isQuantityValid) {
-      alert(`A quantidade mínima para etiquetas de ${config.widthMm}mm de largura é de ${minQty} unidades.`);
       return;
     }
 
@@ -151,18 +139,18 @@ export const Step4QuoteOrder: React.FC<Step4Props> = ({ config, artwork }) => {
           <span className="text-xs font-bold uppercase tracking-wider text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1 rounded-full inline-block">
             Pedido Encaminhado com Sucesso!
           </span>
-          <h3 className="text-2xl font-black text-slate-900">
+          <h3 className="text-2xl font-black text-slate-900 dark:text-white">
             Layout Enviado para Análise Técnica
           </h3>
-          <p className="text-xs sm:text-sm text-slate-600 max-w-md mx-auto">
+          <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400 max-w-md mx-auto">
             Abrimos o WhatsApp com a mensagem padronizada contendo todos os dados do seu pedido.
             Nossa equipe técnica analisará a arte e retornará com a <strong>prova digital oficial</strong> e o <strong>orçamento definitivo</strong>.
           </p>
         </div>
 
-        <div className="bg-surface-50 border border-slate-200 rounded-2xl p-5 max-w-md mx-auto space-y-3 text-left shadow-sm">
+        <div className="bg-surface-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl p-5 max-w-md mx-auto space-y-3 text-left shadow-sm">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-500 uppercase tracking-wider">
+            <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wider">
               Número do Pedido / Protocolo
             </span>
             <button
@@ -175,9 +163,9 @@ export const Step4QuoteOrder: React.FC<Step4Props> = ({ config, artwork }) => {
             </button>
           </div>
 
-          <div className="text-2xl font-black font-mono text-slate-900">{orderNumber}</div>
+          <div className="text-2xl font-black font-mono text-slate-900 dark:text-white">{orderNumber}</div>
 
-          <div className="pt-2 border-t border-slate-200 text-xs space-y-1 text-slate-600">
+          <div className="pt-2 border-t border-slate-200 dark:border-slate-700 text-xs space-y-1 text-slate-600 dark:text-slate-300">
             <div><strong>Cliente:</strong> {customerName} {companyName ? `(${companyName})` : ''}</div>
             <div><strong>Etiqueta:</strong> {fabricName} • {config.widthMm}×{config.lengthMm}mm • {cutName}</div>
             <div><strong>Quantidade:</strong> {config.quantity.toLocaleString('pt-BR')} un</div>
@@ -186,13 +174,13 @@ export const Step4QuoteOrder: React.FC<Step4Props> = ({ config, artwork }) => {
         </div>
 
         {/* Next steps explanation */}
-        <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 max-w-md mx-auto text-left text-xs text-emerald-900 space-y-2">
+        <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl p-4 max-w-md mx-auto text-left text-xs text-emerald-900 dark:text-emerald-200 space-y-2">
           <div className="flex items-center space-x-1.5 font-bold">
-            <ShieldCheck className="w-4 h-4 text-emerald-700" />
+            <ShieldCheck className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
             <span>Como funciona a aprovação e o pagamento:</span>
           </div>
-          <ol className="list-decimal pl-5 space-y-1 text-emerald-800">
-            <li>Nossa equipe analisa a arte e as regras de tecelagem.</li>
+          <ol className="list-decimal pl-5 space-y-1 text-emerald-800 dark:text-emerald-300">
+            <li>Nossa equipe analisa a arte e a configuração do tear.</li>
             <li>Enviamos a prova digital oficial para sua conferência.</li>
             <li>Você aprova ou solicita ajustes ilimitados.</li>
             <li>Após a aprovação, enviamos o orçamento definitivo e o link de pagamento.</li>
@@ -214,7 +202,7 @@ export const Step4QuoteOrder: React.FC<Step4Props> = ({ config, artwork }) => {
           <button
             type="button"
             onClick={() => setSubmitted(false)}
-            className="w-full py-2 px-4 rounded-xl border border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-bold transition-colors"
+            className="w-full py-2 px-4 rounded-xl border border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-bold transition-colors"
           >
             Fazer outra configuração
           </button>
@@ -227,7 +215,7 @@ export const Step4QuoteOrder: React.FC<Step4Props> = ({ config, artwork }) => {
     <div className="space-y-6">
       {/* ── MODALIDADE DE ORÇAMENTO ── */}
       <div>
-        <label className="text-sm font-bold text-slate-800 block mb-2">
+        <label className="text-sm font-bold text-slate-800 dark:text-slate-100 block mb-2">
           Modalidade do orçamento
         </label>
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -236,15 +224,15 @@ export const Step4QuoteOrder: React.FC<Step4Props> = ({ config, artwork }) => {
             onClick={() => setQuoteMode('automatic')}
             className={`p-4 rounded-xl border text-left transition-all ${
               quoteMode === 'automatic'
-                ? 'border-brand bg-brand-50/60 ring-1 ring-brand'
-                : 'border-slate-200 bg-white hover:border-slate-300'
+                ? 'border-brand bg-brand-50/60 dark:bg-brand-950/40 ring-1 ring-brand'
+                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600'
             }`}
           >
             <div className="flex items-center space-x-2 mb-1">
               <Calculator className="w-4 h-4 text-brand" />
-              <strong className="text-sm text-slate-900">Orçamento automático</strong>
+              <strong className="text-sm text-slate-900 dark:text-white">Orçamento automático</strong>
             </div>
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
               Exibe uma estimativa calculada pela tabela padrão. O valor definitivo será confirmado pela equipe após a análise da arte.
             </p>
           </button>
@@ -254,15 +242,15 @@ export const Step4QuoteOrder: React.FC<Step4Props> = ({ config, artwork }) => {
             onClick={() => setQuoteMode('manual')}
             className={`p-4 rounded-xl border text-left transition-all ${
               quoteMode === 'manual'
-                ? 'border-brand bg-brand-50/60 ring-1 ring-brand'
-                : 'border-slate-200 bg-white hover:border-slate-300'
+                ? 'border-brand bg-brand-50/60 dark:bg-brand-950/40 ring-1 ring-brand'
+                : 'border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-slate-300 dark:hover:border-slate-600'
             }`}
           >
             <div className="flex items-center space-x-2 mb-1">
               <Send className="w-4 h-4 text-brand" />
-              <strong className="text-sm text-slate-900">Orçamento manual</strong>
+              <strong className="text-sm text-slate-900 dark:text-white">Orçamento manual</strong>
             </div>
-            <p className="text-xs text-slate-500 leading-relaxed">
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
               Envie a configuração completa para nossa equipe analisar e retornar com o preço final oficial.
             </p>
           </button>
@@ -270,32 +258,32 @@ export const Step4QuoteOrder: React.FC<Step4Props> = ({ config, artwork }) => {
       </div>
 
       {/* ── ESTIMATIVA AUTOMÁTICA (se selecionada) ── */}
-      {quoteMode === 'automatic' && isQuantityValid && (
-        <div className="bg-surface-50 border border-surface-200 rounded-2xl p-5 space-y-3">
+      {quoteMode === 'automatic' && (
+        <div className="bg-surface-50 dark:bg-slate-800/70 border border-surface-200 dark:border-slate-700 rounded-2xl p-5 space-y-3">
           <div className="flex items-start justify-between">
             <div>
-              <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
                 Estimativa de Investimento
               </span>
               <div className="flex items-baseline space-x-2 mt-1">
-                <span className="text-2xl sm:text-3xl font-black text-slate-900">
+                <span className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">
                   {formatBRL(estimate.totalPrice)}
                 </span>
-                <span className="text-xs font-semibold text-slate-500">
+                <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                   ({formatBRL(estimate.unitPrice)} / un)
                 </span>
               </div>
             </div>
 
             {estimate.discountPercent > 0 && (
-              <span className="bg-emerald-100 text-emerald-800 text-xs font-black px-2.5 py-1 rounded-full">
+              <span className="bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 text-xs font-black px-2.5 py-1 rounded-full border border-emerald-300 dark:border-emerald-700">
                 -{estimate.discountPercent}% desconto escala
               </span>
             )}
           </div>
 
-          <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-xs text-amber-900 flex items-start space-x-2">
-            <AlertCircle className="w-4 h-4 text-amber-600 flex-shrink-0 mt-0.5" />
+          <div className="bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 rounded-lg p-3 text-xs text-amber-900 dark:text-amber-300 flex items-start space-x-2">
+            <AlertCircle className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0 mt-0.5" />
             <span>
               <strong>Atenção:</strong> Este valor é uma estimativa preliminar. O orçamento definitivo
               será apresentado após a análise e aprovação técnica da arte pelo nosso departamento de tecelagem.
@@ -306,13 +294,13 @@ export const Step4QuoteOrder: React.FC<Step4Props> = ({ config, artwork }) => {
 
       {/* ── DADOS DO CLIENTE ── */}
       <div className="space-y-4">
-        <h4 className="text-sm font-bold text-slate-800">
+        <h4 className="text-sm font-bold text-slate-800 dark:text-slate-100">
           Dados para contato e envio da prova
         </h4>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
               Seu nome completo *
             </label>
             <input
@@ -320,12 +308,12 @@ export const Step4QuoteOrder: React.FC<Step4Props> = ({ config, artwork }) => {
               value={customerName}
               onChange={e => setCustomerName(e.target.value)}
               placeholder="Ex: Maria Clara"
-              className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand text-slate-900"
+              className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand text-slate-900 dark:text-white"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
               Nome da marca ou confecção
             </label>
             <input
@@ -333,12 +321,12 @@ export const Step4QuoteOrder: React.FC<Step4Props> = ({ config, artwork }) => {
               value={companyName}
               onChange={e => setCompanyName(e.target.value)}
               placeholder="Ex: Studio Bella"
-              className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand text-slate-900"
+              className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand text-slate-900 dark:text-white"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
               WhatsApp para retorno *
             </label>
             <input
@@ -346,12 +334,12 @@ export const Step4QuoteOrder: React.FC<Step4Props> = ({ config, artwork }) => {
               value={customerPhone}
               onChange={e => setCustomerPhone(e.target.value)}
               placeholder="(85) 99999-9999"
-              className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand text-slate-900"
+              className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand text-slate-900 dark:text-white"
             />
           </div>
 
           <div>
-            <label className="block text-xs font-bold text-slate-700 mb-1">
+            <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
               E-mail
             </label>
             <input
@@ -359,13 +347,13 @@ export const Step4QuoteOrder: React.FC<Step4Props> = ({ config, artwork }) => {
               value={customerEmail}
               onChange={e => setCustomerEmail(e.target.value)}
               placeholder="contato@marca.com.br"
-              className="w-full px-3.5 py-2.5 bg-white border border-slate-300 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand text-slate-900"
+              className="w-full px-3.5 py-2.5 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand text-slate-900 dark:text-white"
             />
           </div>
         </div>
 
         <div>
-          <label className="block text-xs font-bold text-slate-700 mb-1">
+          <label className="block text-xs font-bold text-slate-700 dark:text-slate-300 mb-1">
             Observações para a equipe (opcional)
           </label>
           <textarea
@@ -373,14 +361,14 @@ export const Step4QuoteOrder: React.FC<Step4Props> = ({ config, artwork }) => {
             value={notes}
             onChange={e => setNotes(e.target.value)}
             placeholder="Ex: Gostaria de dividir em tamanhos P/M/G, preciso para evento dia 20, cores pantone específicas, etc."
-            className="w-full p-3 bg-white border border-slate-300 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand text-slate-900"
+            className="w-full p-3 bg-white dark:bg-slate-800 border border-slate-300 dark:border-slate-700 rounded-lg text-xs sm:text-sm focus:outline-none focus:ring-2 focus:ring-brand focus:border-brand text-slate-900 dark:text-white"
           />
         </div>
       </div>
 
       {/* ── GARANTIA DE PAGAMENTO POSTERIOR ── */}
-      <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-3.5 flex items-start space-x-2.5 text-xs text-emerald-950">
-        <ShieldCheck className="w-5 h-5 text-emerald-700 flex-shrink-0 mt-0.5" />
+      <div className="bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 rounded-xl p-3.5 flex items-start space-x-2.5 text-xs text-emerald-950 dark:text-emerald-200">
+        <ShieldCheck className="w-5 h-5 text-emerald-700 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
         <div>
           <strong>Compromisso de satisfação:</strong> Você <strong>não paga nada agora</strong>.
           O pagamento só é liberado após a equipe analisar o pedido, gerar a prova digital oficial
@@ -392,14 +380,13 @@ export const Step4QuoteOrder: React.FC<Step4Props> = ({ config, artwork }) => {
       <button
         type="button"
         onClick={handleSubmitToWhatsApp}
-        disabled={!isQuantityValid}
-        className="w-full py-4 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 disabled:bg-slate-300 disabled:cursor-not-allowed text-white font-extrabold text-sm sm:text-base transition-all shadow-md flex items-center justify-center space-x-2.5"
+        className="w-full py-4 px-6 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-sm sm:text-base transition-all shadow-md flex items-center justify-center space-x-2.5"
       >
         <MessageCircle className="w-5 h-5" />
         <span>Enviar Pedido para Aprovação no WhatsApp ({WHATSAPP_DISPLAY})</span>
       </button>
 
-      <p className="text-center text-xs text-slate-500">
+      <p className="text-center text-xs text-slate-500 dark:text-slate-400">
         Ao clicar, o WhatsApp será aberto com todas as características selecionadas formatadas para atendimento imediato.
       </p>
     </div>

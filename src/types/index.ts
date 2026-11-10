@@ -27,14 +27,9 @@ export interface TextElement {
 }
 
 export interface ArtworkConfig {
-  mode: 'online' | 'upload';
-  // Online mode
+  mode: 'online';
   backgroundColor: string;
   textElements: TextElement[];
-  // Upload mode
-  uploadedFileUrl: string | null;
-  uploadedFileName: string | null;
-  uploadedFileType: string | null;
 }
 
 export interface QuoteEstimate {
@@ -75,7 +70,7 @@ export interface OrderSubmission {
 }
 
 // ────────────────────────────────────────────
-// CATÁLOGO DE PRODUTOS
+// CATÁLOGO DE PRODUTOS (TOTALMENTE TEXTUAL, SEM FOTOS)
 // ────────────────────────────────────────────
 
 export interface Product {
@@ -86,7 +81,6 @@ export interface Product {
   tagline: string;
   description: string;
   features: string[];
-  image: string;
   popular?: boolean;
   defaultFabric: string;
   defaultCut: string;
@@ -99,7 +93,7 @@ export interface GalleryItem {
   segment: string;
   fabric: string;
   cut: string;
-  image: string;
+  description: string;
   accentColor: string;
 }
 
@@ -108,3 +102,16 @@ export interface FAQItem {
   answer: string;
   category: 'producao' | 'arquivos' | 'prazos' | 'pagamento';
 }
+
+// ────────────────────────────────────────────
+// PÁGINAS DO SITE (MULTI-PAGE)
+// ────────────────────────────────────────────
+export type PageRoute = 
+  | 'home' 
+  | 'personalizador' 
+  | 'catalogo' 
+  | 'dobras' 
+  | 'como-funciona' 
+  | 'galeria' 
+  | 'faq' 
+  | 'contato';

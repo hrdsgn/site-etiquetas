@@ -42,20 +42,11 @@ const FOLD_DETAILS = [
   {
     id: 'rolo',
     title: 'Rolo',
-    subtitle: 'Fita contínua em carretel',
-    desc: 'As etiquetas são entregues em rolo contínuo para serem cortadas e dobradas na própria linha de produção ou confecção automatizada.',
-    recommendedFor: 'Grandes indústrias de confecção com maquinário automatizado de corte.',
-    seamMargin: 'Espaçamento marcado entre cada unidade.',
-    badge: 'Industrial',
-  },
-  {
-    id: 'laser',
-    title: 'Laser',
-    subtitle: 'Corte a laser de alta precisão com bordas seladas',
-    desc: 'Corte térmico a laser que sela perfeitamente as microfibras, eliminando qualquer rebarba e impedindo o desfiamento. Toque macio e corte limpo.',
-    recommendedFor: 'Moda infantil, moda íntima, etiquetas aparentes e formatos especiais.',
-    seamMargin: 'Pode ser costurada rentes às bordas.',
-    badge: 'Ultra Suave',
+    subtitle: 'Fita contínua em carretel (sem dobra ou corte)',
+    desc: 'As etiquetas são produzidas e entregues em rolo contínuo, sem dobras ou cortes intermediários, ideais para corte direto na linha de produção da confecção.',
+    recommendedFor: 'Grandes confecções e processos automatizados com alimentador de fita contínua.',
+    seamMargin: 'Produção contínua corrida sem corte ou dobra prévia.',
+    badge: 'Produção Contínua',
   },
   {
     id: 'manhattan',
@@ -65,15 +56,6 @@ const FOLD_DETAILS = [
     recommendedFor: 'Streetwear, barras de camisetas oversized e acessórios de moda.',
     seamMargin: 'Margem superior de encaixe.',
     badge: 'Estilo Urbano',
-  },
-  {
-    id: '2_cortes',
-    title: '2 Cortes',
-    subtitle: 'Dois cortes paralelos para composição ou fixação especial',
-    desc: 'Etiqueta com duas áreas de corte independentes, indicada para conjuntos de etiquetas ou fixação em tiras e alças.',
-    recommendedFor: 'Uniformes específicos, calçados, bolsas e mochilas técnicas.',
-    seamMargin: 'Cotas técnicas definidas por projeto.',
-    badge: 'Técnico',
   },
 ];
 
@@ -91,7 +73,7 @@ export const FoldTypesGuide: React.FC = () => {
             Tipos de corte e acabamento disponíveis
           </h2>
           <p className="mt-2 text-slate-600 text-sm sm:text-base">
-            O corte e a dobra definem como a etiqueta será costurada ou aplicada na peça. Conheça as 8 opções disponíveis na nossa tecelagem:
+            O corte e a dobra definem como a etiqueta será costurada ou aplicada na peça. Conheça as 6 opções disponíveis na nossa tecelagem:
           </p>
         </div>
 

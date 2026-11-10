@@ -38,10 +38,8 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
     msg += `✂️ Corte: ${cutName}\n`;
     msg += `📦 Quantidade: ${config.quantity.toLocaleString('pt-BR')} unidades\n`;
 
-    if (artwork.mode === 'online' && artwork.textElements.length > 0) {
+    if (artwork.textElements.length > 0) {
       msg += `🎨 Arte: Fundo ${artwork.backgroundColor}, textos: ${artwork.textElements.map(t => `"${t.text}"`).join(', ')}\n`;
-    } else if (artwork.mode === 'upload' && artwork.uploadedFileName) {
-      msg += `📎 Arquivo: ${artwork.uploadedFileName}\n`;
     }
 
     msg += `\nGostaria de receber a prova digital oficial para aprovação. Obrigado!`;
@@ -85,7 +83,7 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({
                   Acabamento: <strong>{cutName}</strong> • {config.quantity.toLocaleString('pt-BR')} unidades
                 </p>
                 <p className="text-xs text-slate-600 mt-1">
-                  Arte: {artwork.mode === 'online' ? 'Criada no editor do site' : artwork.uploadedFileName || 'Arquivo enviado'}
+                  Arte: Criada no editor do site ({artwork.textElements.length} elemento{artwork.textElements.length !== 1 ? 's' : ''})
                 </p>
               </div>
 

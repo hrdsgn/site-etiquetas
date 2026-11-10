@@ -3,8 +3,7 @@
  * 
  * Este arquivo centraliza todas as opções de produção disponíveis.
  * O administrador pode adicionar, remover ou editar opções sem alterar
- * o restante do código. Em uma futura integração com backend/CMS,
- * estes dados viriam de uma API ou banco de dados.
+ * o restante do código.
  */
 
 // ────────────────────────────────────────────
@@ -88,25 +87,13 @@ export const CUT_OPTIONS: CutOption[] = [
   {
     id: 'rolo',
     name: 'Rolo',
-    description: 'Entregue em rolo contínuo para corte na confecção.',
-    active: true,
-  },
-  {
-    id: 'laser',
-    name: 'Laser',
-    description: 'Corte a laser com bordas seladas e acabamento premium.',
+    description: 'Entregue em rolo contínuo (produção contínua sem dobra ou corte).',
     active: true,
   },
   {
     id: 'manhattan',
     name: 'Manhattan',
     description: 'Acabamento Manhattan com dobra especial diferenciada.',
-    active: true,
-  },
-  {
-    id: '2_cortes',
-    name: '2 Cortes',
-    description: 'Etiqueta com dois cortes para fixação ou composição dupla.',
     active: true,
   },
 ];
@@ -126,6 +113,19 @@ export const THREAD_OPTIONS: ThreadOption[] = [
   { id: 'lurex_ouro', name: 'Lurex Ouro', active: true },
   { id: 'lurex_prata', name: 'Lurex Prata', active: true },
 ];
+
+export const LUREX_GOLD_COLOR = '#D4AF37';
+export const LUREX_SILVER_COLOR = '#C0C0C0';
+
+export function isLurexThread(threadId: string): boolean {
+  return threadId === 'lurex_ouro' || threadId === 'lurex_prata';
+}
+
+export function getLurexColor(threadId: string): string | null {
+  if (threadId === 'lurex_ouro') return LUREX_GOLD_COLOR;
+  if (threadId === 'lurex_prata') return LUREX_SILVER_COLOR;
+  return null;
+}
 
 // ────────────────────────────────────────────
 // TIPOS DE APLICAÇÃO
@@ -156,27 +156,9 @@ export const LENGTH_OPTIONS_MM: number[] = [
   10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 65, 70, 75, 80, 85, 90, 95, 100,
 ];
 
-// ────────────────────────────────────────────
-// QUANTIDADE MÍNIMA POR FAIXA DE LARGURA
-// ────────────────────────────────────────────
-export interface MinQuantityRule {
-  maxWidthMm: number;
-  minQuantity: number;
-}
-
-export const MIN_QUANTITY_RULES: MinQuantityRule[] = [
-  { maxWidthMm: 25, minQuantity: 100 },
-  { maxWidthMm: 40, minQuantity: 200 },
-  { maxWidthMm: 60, minQuantity: 500 },
-];
-
-export function getMinQuantity(widthMm: number): number {
-  for (const rule of MIN_QUANTITY_RULES) {
-    if (widthMm <= rule.maxWidthMm) {
-      return rule.minQuantity;
-    }
-  }
-  return MIN_QUANTITY_RULES[MIN_QUANTITY_RULES.length - 1].minQuantity;
+// Sem quantidade mínima bloqueante
+export function getMinQuantity(_widthMm?: number): number {
+  return 1;
 }
 
 // ────────────────────────────────────────────
@@ -206,11 +188,12 @@ export const PRICE_TABLE: PriceTableConfig = {
     { maxAreaMm2: Infinity, multiplier: 2.0 },
   ],
   quantityDiscounts: [
-    { minQty: 100, discountPercent: 0 },
-    { minQty: 500, discountPercent: 10 },
-    { minQty: 1000, discountPercent: 20 },
-    { minQty: 2500, discountPercent: 30 },
-    { minQty: 5000, discountPercent: 40 },
+    { minQty: 10, discountPercent: 0 },
+    { minQty: 100, discountPercent: 5 },
+    { minQty: 500, discountPercent: 12 },
+    { minQty: 1000, discountPercent: 22 },
+    { minQty: 2500, discountPercent: 32 },
+    { minQty: 5000, discountPercent: 42 },
     { minQty: 10000, discountPercent: 50 },
   ],
   cutSurcharges: {
@@ -219,9 +202,7 @@ export const PRICE_TABLE: PriceTableConfig = {
     so_cortada: 0,
     meio_e_pontas: 0.02,
     rolo: -0.03,
-    laser: 0.08,
     manhattan: 0.05,
-    '2_cortes': 0.04,
   },
   threadSurcharges: {
     poliester: 0,
